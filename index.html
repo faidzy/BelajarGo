@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#5b5ce2">
+  <title>BelajarGo — Jadwal Pelajaran</title>
+  <style>
+    :root {
+      --primary: #5b5ce2;
+      --primary-dark: #4445bd;
+      --accent: #ffcf70;
+      --bg: #f4f6fc;
+      --surface: #ffffff;
+      --text: #20233a;
+      --muted: #737891;
+      --border: #e5e8f2;
+      --danger: #d9485f;
+      --shadow: 0 18px 45px rgba(36, 42, 90, .09);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg); color: var(--text); min-height: 100vh;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .hidden { display: none !important; }
+    .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 850; letter-spacing: -.7px; font-size: 1.55rem; }
+    .brand-mark {
+      display: grid; place-items: center; width: 43px; height: 43px; border-radius: 14px;
+      background: var(--primary); color: white; box-shadow: 0 8px 18px color-mix(in srgb, var(--primary) 28%, transparent);
+    }
+    .brand-mark svg { width: 27px; height: 27px; }
+    .brand span em { color: var(--primary); font-style: normal; }
+    .btn {
+      border: 0; border-radius: 12px; padding: 11px 16px; font-weight: 750; transition: .18s ease;
+      display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn:hover { transform: translateY(-1px); filter: brightness(.98); }
+    .btn-primary { color: #fff; background: var(--primary); box-shadow: 0 7px 15px color-mix(in srgb, var(--primary) 20%, transparent); }
+    .btn-soft { background: color-mix(in srgb, var(--primary) 10%, white); color: var(--primary); }
+    .btn-outline { background: var(--surface); border: 1px solid var(--border); color: var(--text); }
+    .btn-danger { color: var(--danger); background: #fff0f2; }
+    .field { display: grid; gap: 7px; margin-bottom: 16px; }
+    .field label { font-size: .9rem; font-weight: 700; }
+    .field input, .field select, .field input[type="color"] {
+      width: 100%; border: 1px solid var(--border); background: var(--surface); color: var(--text);
+      border-radius: 11px; padding: 12px 13px; outline: none;
+    }
+    .field input:focus, .field select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 13%, transparent); }
+    .hint { color: var(--muted); font-size: .82rem; line-height: 1.5; }
+    /* Login */
+    #authScreen { min-height: 100vh; display: grid; place-items: center; padding: 26px 16px; overflow: hidden; position: relative; }
+    #authScreen::before, #authScreen::after { content: ""; position: absolute; border-radius: 50%; z-index: -1; filter: blur(1px); }
+    #authScreen::before { width: 370px; height: 370px; background: color-mix(in srgb, var(--primary) 12%, transparent); top: -150px; right: -100px; }
+    #authScreen::after { width: 310px; height: 310px; background: #ffcf7038; bottom: -140px; left: -90px; }
+    .auth-card { width: min(100%, 440px); background: var(--surface); border: 1px solid var(--border); border-radius: 26px; padding: clamp(24px, 6vw, 42px); box-shadow: var(--shadow); }
+    .auth-head { text-align: center; margin-bottom: 27px; }
+    .auth-head .brand { margin-bottom: 18px; }
+    .auth-head h1 { font-size: 1.65rem; letter-spacing: -1px; margin: 0 0 9px; }
+    .auth-head p { color: var(--muted); margin: 0; line-height: 1.55; }
+    .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 5px; background: var(--bg); border-radius: 13px; margin-bottom: 22px; }
+    .auth-tab { border: 0; border-radius: 10px; padding: 10px; background: transparent; color: var(--muted); font-weight: 750; }
+    .auth-tab.active { background: var(--surface); color: var(--primary); box-shadow: 0 2px 7px #2222; }
+    .auth-message { font-size: .87rem; margin: 12px 0 0; min-height: 18px; color: var(--danger); line-height: 1.45; }
+    .auth-note { margin-top: 19px; font-size: .77rem; color: var(--muted); line-height: 1.55; text-align: center; }
+    /* App */
+    #appScreen { min-height: 100vh; }
+    .topbar { background: var(--surface); border-bottom: 1px solid var(--border); padding: 15px clamp(16px, 4vw, 44px); display: flex; align-items: center; justify-content: space-between; gap: 18px; position: sticky; top: 0; z-index: 5; }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .user-pill { background: var(--bg); border-radius: 999px; padding: 9px 12px; font-size: .83rem; color: var(--muted); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .main { width: min(1400px, 100%); padding: 32px clamp(16px, 4vw, 44px) 50px; margin: auto; }
+    .welcome { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 25px; }
+    .eyebrow { color: var(--primary); text-transform: uppercase; font-size: .75rem; font-weight: 850; letter-spacing: 1.5px; margin: 0 0 9px; }
+    .welcome h1 { font-size: clamp(1.8rem, 4vw, 2.55rem); line-height: 1.1; letter-spacing: -1.4px; margin: 0 0 10px; }
+    .welcome p { margin: 0; color: var(--muted); }
+    .summary { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 14px; margin-bottom: 23px; }
+    .summary-card { padding: 17px 19px; border-radius: 17px; background: var(--surface); border: 1px solid var(--border); }
+    .summary-card span { display: block; color: var(--muted); font-size: .83rem; margin-bottom: 7px; }
+    .summary-card strong { font-size: 1.7rem; letter-spacing: -.6px; }
+    .workspace { display: grid; grid-template-columns: minmax(0,1fr) 290px; align-items: start; gap: 20px; }
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 20px; box-shadow: 0 5px 18px #242a5907; overflow: hidden; }
+    .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 19px 20px; border-bottom: 1px solid var(--border); }
+    .panel-head h2 { margin: 0; font-size: 1.05rem; letter-spacing: -.3px; }
+    .panel-body { padding: 20px; }
+    .table-wrap { overflow-x: auto; }
+    table { border-collapse: separate; border-spacing: 0; width: 100%; min-width: 700px; }
+    th { text-align: left; padding: 13px 12px; font-size: .78rem; color: var(--muted); background: var(--bg); border-bottom: 1px solid var(--border); white-space: nowrap; }
+    th:first-child { padding-left: 20px; }
+    td { border-bottom: 1px solid var(--border); padding: 11px 12px; vertical-align: top; }
+    tr:last-child td { border-bottom: 0; }
+    td:first-child { padding-left: 20px; width: 125px; }
+    .day-label { display: flex; align-items: center; gap: 8px; font-weight: 800; white-space: nowrap; }
+    .day-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); }
+    .day-off { color: #b0b3c2; }
+    .lesson-cell { min-width: 160px; }
+    .lesson { background: color-mix(in srgb, var(--primary) 9%, white); border-left: 3px solid var(--primary); border-radius: 9px; padding: 9px 10px; margin-bottom: 7px; }
+    .lesson:last-child { margin-bottom: 0; }
+    .lesson strong { display: block; font-size: .83rem; margin-bottom: 4px; line-height: 1.3; }
+    .lesson small { display: block; font-size: .73rem; color: var(--muted); }
+    .empty-cell { color: #c0c3d0; font-size: .8rem; padding: 7px 0; }
+    .side-panel { display: grid; gap: 18px; }
+    .day-list { display: grid; gap: 10px; }
+    .day-toggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: .9rem; }
+    .switch { position: relative; width: 42px; height: 24px; flex-shrink: 0; }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch span { position: absolute; inset: 0; border-radius: 999px; background: #d8dbe7; transition: .2s; cursor: pointer; }
+    .switch span::before { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: white; border-radius: 50%; transition: .2s; box-shadow: 0 1px 3px #0002; }
+    .switch input:checked + span { background: var(--primary); }
+    .switch input:checked + span::before { transform: translateX(18px); }
+    .divider { border: 0; border-top: 1px solid var(--border); margin: 19px 0; }
+    .color-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 13px 0; }
+    .color-row label { font-size: .88rem; font-weight: 650; }
+    .color-row input[type="color"] { width: 42px; height: 35px; padding: 3px; border: 1px solid var(--border); border-radius: 9px; background: var(--surface); cursor: pointer; }
+    .legend { display: flex; flex-wrap: wrap; gap: 8px; }
+    .legend span { border-radius: 999px; background: var(--bg); color: var(--muted); padding: 6px 9px; font-size: .75rem; }
+    .modal-backdrop { position: fixed; inset: 0; background: #15182b80; display: grid; place-items: center; padding: 18px; z-index: 20; }
+    .modal { background: var(--surface); border-radius: 22px; width: min(100%, 520px); max-height: 92vh; overflow: auto; box-shadow: 0 25px 80px #0003; }
+    .modal .panel-head { position: sticky; top: 0; background: var(--surface); z-index: 1; }
+    .modal .panel-body { padding: 22px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 13px; }
+    .form-grid .full { grid-column: 1 / -1; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 7px; }
+    .toast { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); background: #20233a; color: white; padding: 12px 17px; border-radius: 12px; box-shadow: var(--shadow); z-index: 40; font-size: .88rem; max-width: calc(100% - 32px); }
+    footer { text-align: center; color: var(--muted); font-size: .78rem; padding: 0 16px 28px; }
+    @media (max-width: 1000px) { .workspace { grid-template-columns: 1fr; } .side-panel { grid-template-columns: repeat(2,minmax(0,1fr)); } }
+    @media (max-width: 650px) {
+      .topbar { padding: 12px 15px; } .brand { font-size: 1.25rem; gap: 7px; } .brand-mark { width: 37px; height: 37px; border-radius: 12px; }
+      .top-actions { gap: 6px; } .user-pill { display: none; } .top-actions .btn { padding: 9px 10px; font-size: .82rem; }
+      .main { padding-top: 24px; } .welcome { align-items: flex-start; flex-direction: column; } .welcome .btn { width: 100%; }
+      .summary { gap: 8px; } .summary-card { padding: 13px 12px; } .summary-card span { font-size: .72rem; } .summary-card strong { font-size: 1.4rem; }
+      .side-panel { grid-template-columns: 1fr; } .panel-head { padding: 16px; } .panel-body { padding: 16px; }
+      .form-grid { grid-template-columns: 1fr; } .form-grid .full { grid-column: auto; }
+    }
+  </style>
+</head>
+<body>
+  <section id="authScreen">
+    <div class="auth-card">
+      <div class="auth-head">
+        <div class="brand" aria-label="BelajarGo">
+          <div class="brand-mark">
+            <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 8.5C10.1 7.1 13.4 8 16 10.2V25c-2.7-2.1-6-2.8-10-1.5V8.5Z" fill="currentColor" opacity=".95"/><path d="M26 8.5C21.9 7.1 18.6 8 16 10.2V25c2.7-2.1 6-2.8 10-1.5V8.5Z" fill="currentColor" opacity=".68"/><path d="m20 4 2 2 4-3" stroke="#FFCF70" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <span>Belajar<em>Go</em></span>
+        </div>
+        <h1>Atur jadwal, raih tujuan.</h1>
+        <p>Rencanakan minggu sekolahmu dengan cara yang lebih mudah dan menyenangkan.</p>
+      </div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="loginTab" type="button">Masuk</button>
+        <button class="auth-tab" id="registerTab" type="button">Buat akun</button>
+      </div>
+      <form id="authForm">
+        <div class="field"><label for="authEmail">Email</label><input id="authEmail" type="email" placeholder="nama@email.com" autocomplete="email" required></div>
+        <div class="field"><label for="authPassword">Password</label><input id="authPassword" type="password" placeholder="Minimal 6 karakter" minlength="6" autocomplete="current-password" required></div>
+        <div class="field hidden" id="confirmField"><label for="confirmPassword">Ulangi password</label><input id="confirmPassword" type="password" placeholder="Ketik ulang password" minlength="6" autocomplete="new-password"></div>
+        <button class="btn btn-primary" id="authSubmit" type="submit" style="width:100%;padding:13px">Masuk ke BelajarGo <span aria-hidden="true">→</span></button>
+        <p class="auth-message" id="authMessage" role="status"></p>
+      </form>
+      <p class="auth-note">Demo untuk belajar dan proyek GitHub Pages. Data akun disimpan di browser ini saja, bukan layanan login online yang aman.</p>
+    </div>
+  </section>
+
+  <section id="appScreen" class="hidden">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">
+          <svg viewBox="0 0 32 32" fill="none" aria-hidden="true"><path d="M6 8.5C10.1 7.1 13.4 8 16 10.2V25c-2.7-2.1-6-2.8-10-1.5V8.5Z" fill="currentColor" opacity=".95"/><path d="M26 8.5C21.9 7.1 18.6 8 16 10.2V25c2.7-2.1 6-2.8 10-1.5V8.5Z" fill="currentColor" opacity=".68"/><path d="m20 4 2 2 4-3" stroke="#FFCF70" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <span>Belajar<em>Go</em></span>
+      </div>
+      <div class="top-actions"><span class="user-pill" id="userEmail"></span><button class="btn btn-outline" id="logoutBtn" type="button">Keluar</button></div>
+    </header>
+    <main class="main">
+      <div class="welcome">
+        <div><p class="eyebrow">Ruang belajarmu</p><h1>Jadwal sekolah mingguan</h1><p>Susun pelajaranmu. Atur harimu. Tetap semangat!</p></div>
+        <button class="btn btn-primary" id="addLessonBtn" type="button"><span>＋</span> Tambah pelajaran</button>
+      </div>
+      <div class="summary">
+        <div class="summary-card"><span>Total pelajaran</span><strong id="totalLessons">0</strong></div>
+        <div class="summary-card"><span>Hari aktif</span><strong id="activeDays">7</strong></div>
+        <div class="summary-card"><span>Mapel berbeda</span><strong id="uniqueSubjects">0</strong></div>
+      </div>
+      <div class="workspace">
+        <section class="panel">
+          <div class="panel-head"><h2>📅 Jadwal mingguan</h2><button class="btn btn-soft" id="exportBtn" type="button">Unduh CSV ↓</button></div>
+          <div class="table-wrap">
+            <table aria-label="Tabel jadwal pelajaran">
+              <thead><tr><th>Hari</th><th>Jadwal pelajaran</th></tr></thead>
+              <tbody id="scheduleBody"></tbody>
+            </table>
+          </div>
+          <div class="panel-body"><div class="legend"><span>💡 Tip: tekan Tambah pelajaran untuk mengisi jadwal</span><span>💾 Tersimpan otomatis di browser</span></div></div>
+        </section>
+        <aside class="side-panel">
+          <section class="panel">
+            <div class="panel-head"><h2>⚙️ Atur hari aktif</h2></div>
+            <div class="panel-body"><p class="hint" style="margin-top:0">Nyalakan hari yang ingin ditampilkan. Jadwal pada hari yang dimatikan tetap tersimpan.</p><div class="day-list" id="dayToggles"></div><button class="btn btn-outline" id="addDayBtn" style="width:100%;margin-top:17px" type="button">＋ Tambah hari khusus</button></div>
+          </section>
+          <section class="panel">
+            <div class="panel-head"><h2>🎨 Personalisasi</h2></div>
+            <div class="panel-body">
+              <div class="color-row"><label for="primaryColor">Warna utama</label><input type="color" id="primaryColor" value="#5b5ce2"></div>
+              <div class="color-row"><label for="backgroundColor">Warna latar</label><input type="color" id="backgroundColor" value="#f4f6fc"></div>
+              <div class="color-row"><label for="surfaceColor">Warna kartu</label><input type="color" id="surfaceColor" value="#ffffff"></div>
+              <hr class="divider">
+              <div class="field" style="margin-bottom:14px"><label for="themePreset">Tema cepat</label><select id="themePreset"><option value="custom">Kustom</option><option value="purple">Ungu ceria</option><option value="ocean">Biru laut</option><option value="forest">Hijau hutan</option><option value="sunset">Senja</option><option value="dark">Gelap</option></select></div>
+              <button class="btn btn-outline" id="resetThemeBtn" style="width:100%" type="button">Kembalikan tema awal</button>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </main>
+    <footer>BelajarGo • Jadwal lebih rapi, belajar lebih terarah ✨</footer>
+  </section>
+
+  <div class="modal-backdrop hidden" id="lessonModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal">
+      <div class="panel-head"><h2 id="modalTitle">Tambah pelajaran</h2><button class="btn btn-outline" id="closeModalBtn" type="button" aria-label="Tutup">✕</button></div>
+      <div class="panel-body">
+        <form id="lessonForm">
+          <div class="form-grid">
+            <div class="field"><label for="lessonDay">Hari</label><select id="lessonDay" required></select></div>
+            <div class="field"><label for="lessonSubject">Mata pelajaran</label><select id="lessonSubject" required></select></div>
+            <div class="field"><label for="startTime">Jam mulai</label><input id="startTime" type="time" value="07:00" required></div>
+            <div class="field"><label for="endTime">Jam selesai</label><input id="endTime" type="time" value="08:00" required></div>
+            <div class="field full"><label for="lessonNote">Catatan (opsional)</label><input id="lessonNote" type="text" maxlength="90" placeholder="Contoh: Bab 3 — Persamaan kuadrat"></div>
+          </div>
+          <p class="hint" id="lessonFormHint">Pilih hari, mata pelajaran, dan rentang jam. Kamu bisa mengedit atau menghapus jadwal kapan saja.</p>
+          <div class="modal-actions"><button class="btn btn-outline" id="cancelModalBtn" type="button">Batal</button><button class="btn btn-primary" type="submit">Simpan jadwal</button></div>
+        </form>
+      </div>
+    </div>
+  </div>
+  <div id="toast" class="toast hidden" role="status"></div>
+
+  <script>
+    (() => {
+      const DAYS = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
+      const SUBJECTS = [
+        'Matematika', 'Bahasa Inggris', 'Bahasa Indonesia', 'PKN',
+        'Matematika Tingkat Lanjut', 'Fisika', 'Kimia', 'Biologi',
+        'Geografi', 'Sosiologi', 'Sejarah', 'Ekonomi', 'Informatika',
+        'Pendidikan Agama', 'Seni Budaya', 'PJOK', 'Prakarya', 'Muatan Lokal', 'Lainnya'
+      ];
+      const $ = id => document.getElementById(id);
+      const storageKey = 'belajargo_v1';
+      let account = null, editingId = null, toastTimer = null;
+      let state = { days: [...DAYS], hiddenDays: [], lessons: [], theme: { primary:'#5b5ce2', bg:'#f4f6fc', surface:'#ffffff' } };
+      let authMode = 'login';
+
+      function safeLoad() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(storageKey) || '{}');
+          if (saved.accounts && saved.activeEmail && saved.accounts[saved.activeEmail]) {
+            account = saved.activeEmail;
+            state = normalizeState(saved.accounts[account].state || {});
+            return { accounts: saved.accounts, activeEmail: account };
+          }
+          if (saved.accounts) return saved;
+        } catch (e) {}
+        return { accounts: {}, activeEmail: null };
+      }
+      let database = safeLoad();
+      function normalizeState(s) {
+        return {
+          days: Array.isArray(s.days) && s.days.length ? s.days : [...DAYS],
+          hiddenDays: Array.isArray(s.hiddenDays) ? s.hiddenDays : [],
+          lessons: Array.isArray(s.lessons) ? s.lessons : [],
+          theme: { primary: s.theme?.primary || '#5b5ce2', bg: s.theme?.bg || '#f4f6fc', surface: s.theme?.surface || '#ffffff' }
+        };
+      }
+      function save() {
+        if (!account) return;
+        database.accounts ||= {};
+        database.accounts[account] = { state };
+        database.activeEmail = account;
+        try { localStorage.setItem(storageKey, JSON.stringify(database)); }
+        catch (e) { showToast('Browser tidak bisa menyimpan data. Periksa ruang penyimpanan.'); }
+      }
+      function escapeHTML(value) {
+        return String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      }
+      function showToast(message) {
+        $('toast').textContent = message; $('toast').classList.remove('hidden');
+        clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.add('hidden'), 2800);
+      }
+      function setAuthMode(mode) {
+        authMode = mode;
+        $('loginTab').classList.toggle('active', mode === 'login');
+        $('registerTab').classList.toggle('active', mode === 'register');
+        $('confirmField').classList.toggle('hidden', mode !== 'register');
+        $('authSubmit').innerHTML = mode === 'login' ? 'Masuk ke BelajarGo <span aria-hidden="true">→</span>' : 'Buat akun BelajarGo <span aria-hidden="true">→</span>';
+        $('authPassword').autocomplete = mode === 'login' ? 'current-password' : 'new-password';
+        $('authMessage').textContent = '';
+      }
+      $('loginTab').addEventListener('click', () => setAuthMode('login'));
+      $('registerTab').addEventListener('click', () => setAuthMode('register'));
+      $('authForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const email = $('authEmail').value.trim().toLowerCase();
+        const password = $('authPassword').value;
+        if (password.length < 6) return authError('Password minimal 6 karakter.');
+        if (authMode === 'register') {
+          if (password !== $('confirmPassword').value) return authError('Password dan ulangi password belum cocok.');
+          if (database.accounts[email]) return authError('Email ini sudah terdaftar di browser ini. Silakan masuk.');
+          database.accounts[email] = { password, state: normalizeState({}) };
+          // Demo only: browser-local storage is not secure authentication.
+          database.activeEmail = email;
+          account = email;
+          state = normalizeState({});
+          save();
+          openApp();
+        } else {
+          const record = database.accounts[email];
+          if (!record || record.password !== password) return authError('Email atau password salah, atau akun belum dibuat di browser ini.');
+          account = email; state = normalizeState(record.state || {});
+          database.activeEmail = email; save(); openApp();
+        }
+      });
+      function authError(msg) { $('authMessage').textContent = msg; }
+      function openApp() {
+        $('authScreen').classList.add('hidden'); $('appScreen').classList.remove('hidden');
+        $('userEmail').textContent = account;
+        applyTheme(); renderAll();
+      }
+      $('logoutBtn').addEventListener('click', () => {
+        save(); account = null; database.activeEmail = null;
+        try { localStorage.setItem(storageKey, JSON.stringify(database)); } catch(e) {}
+        $('appScreen').classList.add('hidden'); $('authScreen').classList.remove('hidden');
+        $('authForm').reset(); setAuthMode('login');
+      });
+
+      function applyTheme() {
+        const t = state.theme;
+        document.documentElement.style.setProperty('--primary', t.primary);
+        document.documentElement.style.setProperty('--primary-dark', t.primary);
+        document.documentElement.style.setProperty('--bg', t.bg);
+        document.documentElement.style.setProperty('--surface', t.surface);
+        const dark = isDark(t.bg);
+        document.documentElement.style.setProperty('--text', dark ? '#f2f3fb' : '#20233a');
+        document.documentElement.style.setProperty('--muted', dark ? '#b4b8cf' : '#737891');
+        document.documentElement.style.setProperty('--border', dark ? '#383c55' : '#e5e8f2');
+        $('primaryColor').value = t.primary; $('backgroundColor').value = t.bg; $('surfaceColor').value = t.surface;
+      }
+      function isDark(hex) {
+        const c = hex.replace('#',''); const n = parseInt(c,16);
+        return (0.299*(n>>16)+0.587*((n>>8)&255)+0.114*(n&255)) < 145;
+      }
+      const presets = {
+        purple: {primary:'#5b5ce2',bg:'#f4f6fc',surface:'#ffffff'},
+        ocean: {primary:'#087eaa',bg:'#edf8fc',surface:'#ffffff'},
+        forest: {primary:'#23835a',bg:'#eff8f1',surface:'#ffffff'},
+        sunset: {primary:'#d85b43',bg:'#fff4ed',surface:'#ffffff'},
+        dark: {primary:'#9b9cff',bg:'#171a2b',surface:'#22263b'}
+      };
+      function renderAll() {
+        renderDayToggles(); renderDaySelect(); renderSubjectSelect(); renderSchedule(); updateSummary(); save();
+      }
+      function renderDayToggles() {
+        $('dayToggles').innerHTML = state.days.map(day => `
+          <div class="day-toggle"><span>${escapeHTML(day)}</span><label class="switch" aria-label="Tampilkan ${escapeHTML(day)}"><input type="checkbox" data-day="${escapeHTML(day)}" ${state.hiddenDays.includes(day) ? '' : 'checked'}><span></span></label></div>`).join('');
+        $('dayToggles').querySelectorAll('input').forEach(input => input.addEventListener('change', () => {
+          const day = input.dataset.day;
+          state.hiddenDays = input.checked ? state.hiddenDays.filter(d => d !== day) : [...new Set([...state.hiddenDays, day])];
+          renderSchedule(); updateSummary(); save();
+        }));
+      }
+      function renderDaySelect(selected) {
+        $('lessonDay').innerHTML = state.days.map(day => `<option value="${escapeHTML(day)}">${escapeHTML(day)}</option>`).join('');
+        if (selected && state.days.includes(selected)) $('lessonDay').value = selected;
+      }
+      function renderSubjectSelect(selected) {
+        $('lessonSubject').innerHTML = SUBJECTS.map(s => `<option value="${escapeHTML(s)}">${escapeHTML(s)}</option>`).join('');
+        if (selected && SUBJECTS.includes(selected)) $('lessonSubject').value = selected;
+      }
+      function renderSchedule() {
+        const visibleDays = state.days.filter(day => !state.hiddenDays.includes(day));
+        $('scheduleBody').innerHTML = visibleDays.length ? visibleDays.map(day => {
+          const lessons = state.lessons.filter(l => l.day === day).sort((a,b) => a.start.localeCompare(b.start));
+          return `<tr><td><div class="day-label"><span class="day-dot"></span>${escapeHTML(day)}</div></td><td class="lesson-cell">${lessons.length ? lessons.map(l => `
+            <div class="lesson">
+              <strong>${escapeHTML(l.subject)}</strong>
+              <small>◷ ${escapeHTML(l.start)}–${escapeHTML(l.end)}</small>
+              ${l.note ? `<small style="margin-top:5px">${escapeHTML(l.note)}</small>` : ''}
+              <div style="display:flex;gap:6px;margin-top:8px">
+                <button class="btn btn-soft" style="font-size:.7rem;padding:5px 7px" data-edit="${l.id}" type="button">Edit</button>
+                <button class="btn btn-danger" style="font-size:.7rem;padding:5px 7px" data-delete="${l.id}" type="button">Hapus</button>
+              </div>
+            </div>`).join('') : '<span class="empty-cell">Belum ada pelajaran</span>'}</td></tr>`;
+        }).join('') : '<tr><td colspan="2" style="padding:30px;text-align:center;color:var(--muted)">Semua hari disembunyikan. Aktifkan hari melalui panel Atur hari aktif.</td></tr>';
+        $('scheduleBody').querySelectorAll('[data-edit]').forEach(btn => btn.addEventListener('click', () => editLesson(btn.dataset.edit)));
+        $('scheduleBody').querySelectorAll('[data-delete]').forEach(btn => btn.addEventListener('click', () => deleteLesson(btn.dataset.delete)));
+      }
+      function updateSummary() {
+        $('totalLessons').textContent = state.lessons.length;
+        $('activeDays').textContent = state.days.filter(d => !state.hiddenDays.includes(d)).length;
+        $('uniqueSubjects').textContent = new Set(state.lessons.map(l => l.subject)).size;
+      }
+      function openModal(lesson) {
+        editingId = lesson ? lesson.id : null;
+        $('modalTitle').textContent = lesson ? 'Edit pelajaran' : 'Tambah pelajaran';
+        renderDaySelect(lesson?.day);
+        renderSubjectSelect(lesson?.subject);
+        $('startTime').value = lesson?.start || '07:00';
+        $('endTime').value = lesson?.end || '08:00';
+        $('lessonNote').value = lesson?.note || '';
+        $('lessonModal').classList.remove('hidden');
+      }
+      function closeModal() { $('lessonModal').classList.add('hidden'); editingId = null; }
+      $('addLessonBtn').addEventListener('click', () => openModal());
+      $('closeModalBtn').addEventListener('click', closeModal);
+      $('cancelModalBtn').addEventListener('click', closeModal);
+      $('lessonModal').addEventListener('click', e => { if (e.target === $('lessonModal')) closeModal(); });
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+      $('lessonForm').addEventListener('submit', e => {
+        e.preventDefault();
+        const start = $('startTime').value, end = $('endTime').value;
+        if (end <= start) return showToast('Jam selesai harus setelah jam mulai.');
+        const item = { id: editingId || (Date.now().toString(36) + Math.random().toString(36).slice(2,7)), day:$('lessonDay').value, subject:$('lessonSubject').value, start, end, note:$('lessonNote').value.trim() };
+        if (editingId) state.lessons = state.lessons.map(l => l.id === editingId ? item : l);
+        else state.lessons.push(item);
+        closeModal(); renderAll(); showToast(editingId ? 'Jadwal berhasil diperbarui.' : 'Pelajaran berhasil ditambahkan.');
+      });
+      function editLesson(id) { const lesson = state.lessons.find(l => l.id === id); if (lesson) openModal(lesson); }
+      function deleteLesson(id) {
+        const lesson = state.lessons.find(l => l.id === id);
+        if (!lesson || !confirm(`Hapus jadwal ${lesson.subject} pada hari ${lesson.day}?`)) return;
+        state.lessons = state.lessons.filter(l => l.id !== id); renderAll(); showToast('Jadwal dihapus.');
+      }
+      $('addDayBtn').addEventListener('click', () => {
+        const name = prompt('Nama hari tambahan (contoh: Kelas Tambahan):');
+        if (!name || !name.trim()) return;
+        const day = name.trim().slice(0,35);
+        if (state.days.some(d => d.toLowerCase() === day.toLowerCase())) return showToast('Nama hari tersebut sudah ada.');
+        state.days.push(day); renderAll(); showToast('Hari tambahan berhasil dibuat.');
+      });
+      $('primaryColor').addEventListener('input', e => { state.theme.primary = e.target.value; $('themePreset').value='custom'; applyTheme(); save(); });
+      $('backgroundColor').addEventListener('input', e => { state.theme.bg = e.target.value; $('themePreset').value='custom'; applyTheme(); save(); });
+      $('surfaceColor').addEventListener('input', e => { state.theme.surface = e.target.value; $('themePreset').value='custom'; applyTheme(); save(); });
+      $('themePreset').addEventListener('change', e => {
+        if (presets[e.target.value]) { state.theme = {...presets[e.target.value]}; applyTheme(); save(); }
+      });
+      $('resetThemeBtn').addEventListener('click', () => {
+        state.theme = {...presets.purple}; $('themePreset').value='purple'; applyTheme(); save(); showToast('Tema awal dipulihkan.');
+      });
+      $('exportBtn').addEventListener('click', () => {
+        const rows = [['Hari','Mata Pelajaran','Jam Mulai','Jam Selesai','Catatan']];
+        state.days.forEach(day => state.lessons.filter(l => l.day === day).sort((a,b)=>a.start.localeCompare(b.start)).forEach(l => rows.push([l.day,l.subject,l.start,l.end,l.note||''])));
+        const csv = '\uFEFF' + rows.map(row => row.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+        const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+        const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href=url; a.download='jadwal-belajargo.csv'; a.click(); URL.revokeObjectURL(url);
+        showToast('File jadwal CSV berhasil disiapkan.');
+      });
+
+      if (account && database.accounts[account]) openApp();
+    })();
+  </script>
+</body>
+</html>
